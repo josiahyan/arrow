@@ -289,7 +289,6 @@ if(ARROW_GCS)
   set(ARROW_WITH_GCPSDK ON)
 endif()
 
-
 if(NOT ARROW_COMPUTE)
   # utf8proc is only potentially used in kernels for now
   set(ARROW_WITH_UTF8PROC OFF)
@@ -426,10 +425,8 @@ if(DEFINED ENV{ARROW_CRC32C_URL})
 else()
   set_urls(
     CRC32C_SOURCE_URL
-    "https://github.com/google/crc32c/archive/${ARROW_CRC32C_BUILD_VERSION}.tar.gz"
-    )
+    "https://github.com/google/crc32c/archive/${ARROW_CRC32C_BUILD_VERSION}.tar.gz")
 endif()
-
 
 if(DEFINED ENV{ARROW_GBENCHMARK_URL})
   set(GBENCHMARK_SOURCE_URL "$ENV{ARROW_GBENCHMARK_URL}")
@@ -520,7 +517,6 @@ else()
     "https://github.com/nlohmann/json/archive/${ARROW_NLOHMANN_JSON_BUILD_VERSION}.tar.gz"
     )
 endif()
-
 
 if(DEFINED ENV{ARROW_LZ4_URL})
   set(LZ4_SOURCE_URL "$ENV{ARROW_LZ4_URL}")
@@ -2354,7 +2350,7 @@ endif()
 # Dependencies for Arrow Flight RPC
 
 macro(build_absl_once)
-  if (NOT BUILD_ABSL_RUN_ONCE)
+  if(NOT BUILD_ABSL_RUN_ONCE)
     set(BUILD_ABSL_RUN_ONCE)
     message(STATUS "Building Abseil from source")
 
@@ -2368,56 +2364,56 @@ macro(build_absl_once)
         "-DCMAKE_INSTALL_PREFIX=${ABSL_PREFIX}")
     set(ABSL_BUILD_BYPRODUCTS)
 
-    if (ARROW_WITH_GRPC)
-        # Abseil libraries gRPC depends on
-        set(_ABSL_LIBS
-            bad_optional_access
-            base
-            cord
-            graphcycles_internal
-            int128
-            malloc_internal
-            raw_logging_internal
-            spinlock_wait
-            stacktrace
-            status
-            statusor
-            str_format_internal
-            strings
-            strings_internal
-            symbolize
-            # symbolize depends on debugging_internal
-            debugging_internal
-            # debugging_internal depends on demangle_internal
-            demangle_internal
-            synchronization
-            throw_delegate
-            time
-            time_zone)
+    if(ARROW_WITH_GRPC)
+      # Abseil libraries gRPC depends on
+      list(APPEND _ABSL_LIBS
+                  bad_optional_access
+                  base
+                  cord
+                  graphcycles_internal
+                  int128
+                  malloc_internal
+                  raw_logging_internal
+                  spinlock_wait
+                  stacktrace
+                  status
+                  statusor
+                  str_format_internal
+                  strings
+                  strings_internal
+                  symbolize
+                  # symbolize depends on debugging_internal
+                  debugging_internal
+                  # debugging_internal depends on demangle_internal
+                  demangle_internal
+                  synchronization
+                  throw_delegate
+                  time
+                  time_zone)
     endif()
-    if (ARROW_WITH_GCPSDK)
-        # Abseil libraries google-cloud-cpp depends on
+    if(ARROW_WITH_GCPSDK)
+      # Abseil libraries google-cloud-cpp depends on
 
-        # Listing of required absl object files taken from bazel query
-        # $ bazel query 'filter("@com_google_absl.*cc$", kind("source file", deps(//google/cloud/storage:storage_client)))'
-        # resolve against libabsl archives and match the containing object files to get the below
-        # Another way to do this might be to walk the cmake graph of google-cloud-cpp
-        list(APPEND _ABSL_LIBS
-             bad_optional_access
-             bad_variant_access
-             base
-             civil_time
-             dynamic_annotations
-             int128
-             log_severity
-             raw_logging_internal
-             spinlock_wait
-             str_format_internal
-             strings
-             strings_internal
-             throw_delegate
-             time
-             time_zone)
+      # Listing of required absl object files taken from bazel query
+      # $ bazel query 'filter("@com_google_absl.*cc$", kind("source file", deps(//google/cloud/storage:storage_client)))'
+      # resolve against libabsl archives and match the containing object files to get the below
+      # Another way to do this might be to walk the cmake graph of google-cloud-cpp
+      list(APPEND _ABSL_LIBS
+                  bad_optional_access
+                  bad_variant_access
+                  base
+                  civil_time
+                  dynamic_annotations
+                  int128
+                  log_severity
+                  raw_logging_internal
+                  spinlock_wait
+                  str_format_internal
+                  strings
+                  strings_internal
+                  throw_delegate
+                  time
+                  time_zone)
     endif()
 
     list(REMOVE_DUPLICATES _ABSL_LIBS)
@@ -2438,9 +2434,9 @@ macro(build_absl_once)
                         URL ${ABSL_SOURCE_URL}
                         CMAKE_ARGS ${ABSL_CMAKE_ARGS}
                         BUILD_BYPRODUCTS ${ABSL_BUILD_BYPRODUCTS}
-                        EXCLUDE_FROM_ALL ON)  # only build if depended on (by gRPC or google-cloud-cpp)
-    list(APPEND ARROW_BUNDLED_STATIC_LIBS
-                ${ABSL_LIBRARIES})
+                        EXCLUDE_FROM_ALL ON)
+    # only build if depended on (by gRPC or google-cloud-cpp)
+    list(APPEND ARROW_BUNDLED_STATIC_LIBS ${ABSL_LIBRARIES})
   endif()
 endmacro()
 
@@ -3029,11 +3025,10 @@ macro(build_google_cloud_cpp)
                       BUILD_BYPRODUCTS ${CRC32C_BUILD_BYPRODUCTS})
   add_library(Crc32c::crc32c STATIC IMPORTED)
   set_target_properties(Crc32c::crc32c
-                        PROPERTIES
-                        IMPORTED_LOCATION ${_CRC32C_STATIC_LIBRARY}
-                        INTERFACE_INCLUDE_DIRECTORIES "${CRC32C_INCLUDE}/include")
+                        PROPERTIES IMPORTED_LOCATION ${_CRC32C_STATIC_LIBRARY}
+                                   INTERFACE_INCLUDE_DIRECTORIES
+                                   "${CRC32C_INCLUDE}/include")
   add_dependencies(Crc32c::crc32c crc32c_ep)
-
 
   # "Build" nhlomann-json
   set(NLOHMANN_JSON_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/nlohmann_json_ep-install")
@@ -3054,7 +3049,8 @@ macro(build_google_cloud_cpp)
                       BUILD_BYPRODUCTS ${NLOHMANN_JSON_BUILD_BYPRODUCTS})
   add_library(nlohmann_json::nlohmann_json INTERFACE IMPORTED)
   set_target_properties(nlohmann_json::nlohmann_json
-                        PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${NLOHMANN_JSON_PREFIX}/include")
+                        PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
+                                   "${NLOHMANN_JSON_PREFIX}/include")
   add_dependencies(nlohmann_json::nlohmann_json nlohmann_json_ep)
 
   # Curl is required on all platforms, but building it internally might also trip over S3's copy.
@@ -3071,7 +3067,8 @@ macro(build_google_cloud_cpp)
   list(APPEND GCPSDK_PREFIX_PATH_LIST ${NLOHMANN_JSON_PREFIX})
 
   set(GCPSDK_PREFIX_PATH_LIST_SEP_CHAR "|")
-  list(JOIN GCPSDK_PREFIX_PATH_LIST ${GCPSDK_PREFIX_PATH_LIST_SEP_CHAR} GCPSDK_PREFIX_PATH)
+  list(JOIN GCPSDK_PREFIX_PATH_LIST ${GCPSDK_PREFIX_PATH_LIST_SEP_CHAR}
+       GCPSDK_PREFIX_PATH)
 
   set(GCPSDK_CXX_FLAGS "${EP_CXX_FLAGS}")
   # workaround for crc32c not declaring its header interface in its Find*.cmake file
@@ -3109,39 +3106,45 @@ macro(build_google_cloud_cpp)
     add_dependencies(google_cloud_cpp_dependencies cares_ep)
   endif()
 
-  set(GCPSDK_STATIC_LIBRARY_STORAGE_CLIENT
-    "${GCPSDK_INSTALL_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}storage_client${CMAKE_STATIC_LIBRARY_SUFFIX}")
+  set(
+    GCPSDK_STATIC_LIBRARY_STORAGE_CLIENT
+    "${GCPSDK_INSTALL_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}storage_client${CMAKE_STATIC_LIBRARY_SUFFIX}"
+    )
 
-  set(GCPSDK_STATIC_LIBRARY_COMMON
-    "${GCPSDK_INSTALL_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}google_cloud_cpp_common${CMAKE_STATIC_LIBRARY_SUFFIX}")
+  set(
+    GCPSDK_STATIC_LIBRARY_COMMON
+    "${GCPSDK_INSTALL_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}google_cloud_cpp_common${CMAKE_STATIC_LIBRARY_SUFFIX}"
+    )
 
   externalproject_add(GCPSDK_ep
-                     ${EP_LOG_OPTIONS}
-                     LIST_SEPARATOR ${GCPSDK_PREFIX_PATH_LIST_SEP_CHAR}
-                     INSTALL_DIR ${GCPSDK_INSTALL_PREFIX}
-                     URL ${GCPSDK_SOURCE_URL}
-                     CMAKE_ARGS ${GCPSDK_CMAKE_ARGS}
-                     BUILD_BYPRODUCTS ${GCPSDK_STATIC_LIBRARY_STORAGE_CLIENT}
-                                      ${GCPSDK_STATIC_LIBRARY_COMMON}
-                     DEPENDS google_cloud_cpp_dependencies)
+                      ${EP_LOG_OPTIONS}
+                      LIST_SEPARATOR ${GCPSDK_PREFIX_PATH_LIST_SEP_CHAR}
+                      INSTALL_DIR ${GCPSDK_INSTALL_PREFIX}
+                      URL ${GCPSDK_SOURCE_URL}
+                      CMAKE_ARGS ${GCPSDK_CMAKE_ARGS}
+                      BUILD_BYPRODUCTS ${GCPSDK_STATIC_LIBRARY_STORAGE_CLIENT}
+                                       ${GCPSDK_STATIC_LIBRARY_COMMON}
+                      DEPENDS google_cloud_cpp_dependencies)
   add_dependencies(toolchain GCPSDK_ep)
 
   add_library(google_cloud_cpp_common STATIC IMPORTED)
   set_target_properties(google_cloud_cpp_common
                         PROPERTIES IMPORTED_LOCATION "${GCPSDK_STATIC_LIBRARY_COMMON}"
-                                   INTERFACE_INCLUDE_DIRECTORIES "${GCPSDK_INSTALL_PREFIX}")
+                                   INTERFACE_INCLUDE_DIRECTORIES
+                                   "${GCPSDK_INSTALL_PREFIX}")
 
   add_library(storage_client STATIC IMPORTED)
   # base INTERFACE_LINK_LIBRARIES off the storage_client target_link_libraries as seen in
   # https://github.com/googleapis/google-cloud-cpp/blob/v1.20.x/google/cloud/storage/CMakeLists.txt#L246
   set_target_properties(
     storage_client
-    PROPERTIES IMPORTED_LOCATION
-               "${GCPSDK_STATIC_LIBRARY_STORAGE_CLIENT}"
-               INTERFACE_LINK_LIBRARIES
-               "${ABSL_LIBRARIES};google_cloud_cpp_common;nlohmann_json::nlohmann_json;Crc32c::crc32c;CURL::libcurl;Threads::Threads;OpenSSL::SSL;OpenSSL::Crypto;ZLIB::ZLIB"
-               INTERFACE_INCLUDE_DIRECTORIES
-               "${GCPSDK_INCLUDE_DIR}")
+    PROPERTIES
+      IMPORTED_LOCATION
+      "${GCPSDK_STATIC_LIBRARY_STORAGE_CLIENT}"
+      INTERFACE_LINK_LIBRARIES
+      "${ABSL_LIBRARIES};google_cloud_cpp_common;nlohmann_json::nlohmann_json;Crc32c::crc32c;CURL::libcurl;Threads::Threads;OpenSSL::SSL;OpenSSL::Crypto;ZLIB::ZLIB"
+      INTERFACE_INCLUDE_DIRECTORIES
+      "${GCPSDK_INCLUDE_DIR}")
   add_dependencies(storage_client GCPSDK_ep)
 
   list(APPEND ARROW_BUNDLED_STATIC_LIBS storage_client)
