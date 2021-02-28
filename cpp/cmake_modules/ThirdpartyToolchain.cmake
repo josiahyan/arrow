@@ -2403,7 +2403,6 @@ macro(build_absl_once)
                   bad_variant_access
                   base
                   civil_time
-                  dynamic_annotations
                   int128
                   log_severity
                   raw_logging_internal
